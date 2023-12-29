@@ -8,29 +8,37 @@
 
 #include "ffmpeg.h"
 
-#define DIMENSION 1000
+#define DIMENSION 200
+#define PADDING 10
 #define ITER 100000
 #define STEP 0.001
 
 #define FPS 30
 #define DURATION 10
 
-static uint32_t pixels[DIMENSION][DIMENSION] = {0};
+static uint32_t pixels[DIMENSION][DIMENSION];
+
+void clearcanvas() {
+	memset(pixels, 0xFF000000, sizeof(uint32_t)*DIMENSION*DIMENSION);
+}
 
 int main(int argc, char *argv[])
 {
 	FFMPEG *ffmpeg = ffmpeg_start_rendering(DIMENSION, DIMENSION, FPS);
 
 	double phase = 0;
+	double freq = 0;
 	for (int f = 0; f < FPS*DURATION; f++) {
+		clearcanvas();
 		long double t = 0;
 		for (unsigned long n = 0; n < ITER; n += 1) {
-			int y = sin(2.123*t) * 450 + 500;
-			int x = sin(t + phase) * 450 + 500;
+			int y = sin(freq*t) * (DIMENSION/2 - PADDING) + DIMENSION/2;
+			int x = sin(t + phase) * (DIMENSION/2 - PADDING) + DIMENSION/2;
 			pixels[y][x] = 0xFFFFFFFF;
 			t += STEP;
 		}
 		phase += 0.01;
+		freq += 0.01;
 		ffmpeg_send_frame(ffmpeg, pixels, DIMENSION, DIMENSION);
 	}
 
